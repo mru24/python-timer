@@ -11,6 +11,7 @@ class Main:
     def __init__(self, root):
         self.workTime = workTime
         self.breakTime = breakTime
+        self.work = False
         self.mins = ''
         self.sec = ''
         self.after_id = None
@@ -56,6 +57,12 @@ class Main:
                                 text="Reset",
                                 font=("Arial",20),
                                 command=self.on_btn_reset)
+        self.btn_work = tk.Button(self.frame, 
+                                text="Start Work",
+                                bg="green",
+                                fg="white",
+                                font=("Arial",20),
+                                command=self.on_btn_work)
         self.entry = tk.Entry(self.frame,
                               font=("Arial",24),
                               justify="center",
@@ -75,35 +82,36 @@ class Main:
         self.btn_start.grid(row=4,column=1,ipadx=4,ipady=5)
         self.btn_stop.grid(row=4,column=2,ipadx=6,ipady=5)
         self.btn_reset.grid(row=4,column=3,columnspan=2,ipadx=42,ipady=5)
+        self.btn_work.grid(row=5,column=1,columnspan=4,ipadx=102,ipady=5)
         self.frame.grid()   
 
     def on_btn_rem(self):
         self.workTime = self.workTime - 60
-        self.display_counter()
+        self.display_counter(self.workTime)
 
     def on_btn_add(self):
         self.workTime = self.workTime + 60
-        self.display_counter()        
+        self.display_counter(self.workTime)        
 
     def on_btn_10(self):
         self.on_btn_stop()
         self.workTime = 10 * 60
-        self.display_counter()
+        self.display_counter(self.workTime)
     
     def on_btn_15(self):
         self.on_btn_stop()
         self.workTime = 15 * 60
-        self.display_counter()
+        self.display_counter(self.workTime)
 
     def on_btn_30(self):
         self.on_btn_stop()
         self.workTime = 30 * 60
-        self.display_counter()
+        self.display_counter(self.workTime)
 
     def on_btn_45(self):
         self.on_btn_stop()
         self.workTime = 45 * 60
-        self.display_counter()
+        self.display_counter(self.workTime)
  
     def on_btn_start(self):
         if not self.after_id:
@@ -115,23 +123,41 @@ class Main:
             self.frame.after_cancel(self.after_id)
             self.after_id = None
             self.btn_start.configure(bg="green")
+            self.btn_work.configure(bg="green")
  
     def on_btn_reset(self):
         self.on_btn_stop()
         self.workTime = workTime
-        self.display_counter()
+        self.display_counter(self.workTime)
+    
+    def on_btn_work(self):
+        if not self.after_id:
+            self.work = True
+            self.decrease_counter()
+            self.btn_work.configure(bg="red")
+            self.workTime = 1*30
+            self.breakTime = 1*15
+            self.display_counter(self.workTime)
  
     def decrease_counter(self):
         self.workTime -= 1
-        self.display_counter()
-        self.after_id = self.frame.after(1000, self.decrease_counter)
-        if self.workTime < 0:
-            self.beep()
-            self.on_btn_reset()         
+        self.display_counter(self.workTime)
+        self.after_id = self.frame.after(1000, self.decrease_counter)        
+        if self.workTime < 0:    
+            if self.work:       
+                self.workTime = self.breakTime
+            else:
+                self.beep()
+                self.on_btn_reset()     
+        if self.breakTime < 0:
+            self.workTime = 1*30
+            self.workTime -= 1
+            self.display_counter(self.workTime)    
+            self.breakTime = 1*15                
  
-    def display_counter(self):
+    def display_counter(self,data):
         self.entry.delete(0, tk.END)
-        self.entry.insert(0, time.strftime("%H:%M:%S", time.gmtime(self.workTime)))
+        self.entry.insert(0, time.strftime("%H:%M:%S", time.gmtime(data)))
  
     def beep(self):
         frequency = 2500  # Set Frequency To 2500 Hertz
